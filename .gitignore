@@ -177,3 +177,5 @@ pyrightconfig.json
 lib64/
 datatest/
 *.csv
+
+*.vscode/
