@@ -59,9 +59,16 @@ probabilitas = hasil_prediksi[0]
 # Daftar jenis kopi
 daftar_jenis_kopi = ['Kopi Sidikalang', 'Kopi Toraja', 'Kopi Temanggung', 'Kopi Manggarai']
 
+# Menemukan indeks dari probabilitas tertinggi
+indeks_tertinggi = np.argmax(probabilitas)
+
+# Menyiapkan warna
+colors = ['gray'] * len(probabilitas)
+colors[indeks_tertinggi] = 'orange'
+
 # Menampilkan grafik
 plt.figure(figsize=(8, 6))
-plt.bar(daftar_jenis_kopi, probabilitas)
+plt.bar(daftar_jenis_kopi, probabilitas, color=colors)
 plt.xlabel('Jenis Kopi')
 plt.ylabel('Probabilitas')
 plt.title('Probabilitas Jenis Kopi Berdasarkan Data')
