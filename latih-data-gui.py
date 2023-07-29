@@ -13,7 +13,7 @@ input_neurons = X.shape[1]
 hidden_neurons = 4
 output_neurons = y.shape[1]
 
-np.random.seed(0)
+np.random.seed(0) 
 
 weights_input_hidden = np.random.uniform(size=(input_neurons, hidden_neurons))
 bias_hidden = np.random.uniform(size=(1, hidden_neurons))
@@ -46,9 +46,9 @@ for epoch in range(epochs):
     bias_hidden += np.sum(hidden_gradient, axis=0, keepdims=True) * learning_rate
 
 def predict(X):
-    hidden_output = sigmoid(np.dot(X, weights_input_hidden) + bias_hidden)
-    predicted_output = sigmoid(np.dot(hidden_output, weights_hidden_output) + bias_output)
-    return predicted_output
+    hidden_output = sigmoid(np.dot(X, weights_input_hidden) + bias_hidden) # Output dari hidden layer
+    predicted_output = sigmoid(np.dot(hidden_output, weights_hidden_output) + bias_output) # Output dari output layer
+    return predicted_output 
 
 data_test = np.array([[10, 20, 30]])  # Ganti dengan nilai ppm dari masing-masing sensor gas
 hasil_prediksi = predict(data_test)
