@@ -87,7 +87,7 @@ def test_model(file_path, weights_input_hidden, bias_hidden, weights_hidden_outp
     predicted_output = sigmoid(np.dot(hidden_output, weights_hidden_output) + bias_output) # Output dari output layer
 
     # Membuat grafik probabilitas
-    probabilitas = predicted_output[:, 0] # Probabilitas dari hasil prediksi
+    probabilitas = predicted_output[0] # Probabilitas dari hasil prediksi
 
     # Daftar jenis kopi
     daftar_jenis_kopi = ['Kopi Sidikalang', 'Kopi Toraja', 'Kopi Temanggung', 'Kopi Manggarai'] 
@@ -107,8 +107,22 @@ def test_model(file_path, weights_input_hidden, bias_hidden, weights_hidden_outp
     plt.ylim(0, 1)
     plt.show()
 
+    threshold = 0.5
+    predicted_labels = (probabilitas >= threshold).astype(int)
+
+    # Mendapatkan nilai sebenarnya dari data pengujian
+    true_labels = (y >= threshold).astype(int)
+
+    # Menghitung precision, recall, dan F1-score
+    precision = precision_score(true_labels, predicted_labels, average='macro')
+    recall = recall_score(true_labels, predicted_labels, average='macro')
+    f1 = f1_score(true_labels, predicted_labels, average='macro')
+
+    # Menampilkan hasil evaluasi
+    sg.popup(f'Precision: {precision:.4f}\nRecall: {recall:.4f}\nF1-score: {f1:.4f}')
+
 # Palet warna untuk GUI
-sg.theme('DarkTeal1')
+sg.theme('DarkTeal2')
 
 # Tampilan layout GUI untuk pelatihan
 train_layout = [
