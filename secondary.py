@@ -3,7 +3,8 @@ import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
 import PySimpleGUI as sg
-from sklearn.metrics import accuracy_score
+from sklearn.metrics import accuracy_score, precision_score, recall_score, f1_score, confusion_matrix
+
 
 def sigmoid(x):
     return 1 / (1 + np.exp(-x))
@@ -34,7 +35,7 @@ def train_model(file_path):
               'Kopi Temanggung', 'Kopi Manggarai']].values
 
     input_neurons = X.shape[1]  # 3 karena ada 3 sensor gas
-    hidden_neurons = 4
+    hidden_neurons = 3
     output_neurons = y.shape[1]  # 4 karena ada 4 jenis kopi
 
     # Untuk memastikan hasil random yang sama setiap kali dijalankan
@@ -136,13 +137,35 @@ def test_model(file_path, weights_input_hidden, bias_hidden, weights_hidden_outp
     plt.ylim(0, 1)
     plt.show()
 
-
     # predicted_labels = (predicted_output >= 0.5).astype(int)
-    accuracy = accuracy_score(np.argmax(y, axis=1), np.argmax(predicted_output, axis=1))
+    accuracy = accuracy_score(np.argmax(y, axis=1),
+                              np.argmax(predicted_output, axis=1))
     # Menampilkan hasil evaluasi
-    sg.popup(f'Akurasi: {accuracy * 100:.2f}%')
+    # sg.popup(f'Akurasi: {accuracy * 100:.2f}%')
+
+    true_labels = np.argmax(y, axis=1)
+    predicted_labels = np.argmax(predicted_output, axis=1)
+
+    accuracy = accuracy_score(true_labels, predicted_labels)
+    precision = precision_score(true_labels, predicted_labels, average='weighted')
+    recall = recall_score(true_labels, predicted_labels, average='weighted')
+    f1 = f1_score(true_labels, predicted_labels, average='weighted')
+
+    print(f'Akurasi: {accuracy * 100:.2f}%')
+    print(f'Presisi: {precision * 100:.2f}%')
+    print(f'Recall: {recall * 100:.2f}%')
+    print(f'F1-Score: {f1 * 100:.2f}%')
+    sg.popup(f'Accuracy: {accuracy * 100:.2f}%', f'Precision: {precision * 100:.2f}%', f'Recall: {recall * 100:.2f}%', f'F1-Score: {f1 * 100:.2f}%')
+    # Menghitung matriks konfusi
+    conf_matrix = confusion_matrix(true_labels, predicted_labels)
+
+    # Menampilkan matriks konfusi
+    print("Matriks Konfusi:")
+    print(conf_matrix)
+
+
 # Palet warna untuk GUI
-sg.theme('DarkTeal2')
+sg.theme('SandyBeach')
 
 # Tampilan layout GUI untuk pelatihan dan pengujian dalam satu halaman
 layout = [
@@ -152,16 +175,17 @@ layout = [
         key='train_file_path', size=(40, 1)), sg.FileBrowse()],
     [sg.Text('Pilih File Data Pengujian:', size=(25, 1)), sg.Input(
         key='test_file_path', size=(40, 1)), sg.FileBrowse()],
-    [sg.Button('Pelatihan', size=(20, 1)), sg.Button('Pengujian', size=(20, 1))],
+    [sg.Button('Pelatihan', size=(20, 1)),
+     sg.Button('Pengujian', size=(20, 1))],
     [sg.Text('Hasil Pelatihan/Pengujian:', size=(40, 1), justification='center')],
     [sg.Text('', key='result_text', size=(40, 1), justification='center')],
     [sg.Image(filename='', key='plot')],
-    [sg.Text('Akurasi: ', key='accuracy_label', size=(15, 1)), sg.Text('', key='accuracy_value', size=(15, 1))],
     [sg.Button('Exit', size=(20, 1))],
 ]
 
 # Membuat GUI window
-window = sg.Window('Analisis Jenis Kopi', layout, size=(700, 500), element_justification='center')
+window = sg.Window('Analisis Jenis Kopi', layout, size=(
+    600, 300), element_justification='center')
 
 weights_input_hidden, bias_hidden, weights_hidden_output, bias_output = None, None, None, None
 
@@ -183,9 +207,11 @@ while True:
             sg.popup_error('Lakukan pelatihan terlebih dahulu!')
         else:
             # Panggil fungsi pengujian dan perbarui hasilnya di GUI
-            accuracy = test_model(values['test_file_path'], weights_input_hidden, bias_hidden, weights_hidden_output, bias_output)
+            accuracy = test_model(values['test_file_path'], weights_input_hidden,
+                                  bias_hidden, weights_hidden_output, bias_output)
             window['result_text'].update('Pengujian selesai!')
             if accuracy is not None:
-                window['accuracy_value'].update(f'{accuracy * 100:.2f}%')  # Perbarui akurasi jika tidak None
+                # Perbarui akurasi jika tidak None
+                window['accuracy_value'].update(f'{accuracy * 100:.2f}%')
 # Menutup window
 window.close()
