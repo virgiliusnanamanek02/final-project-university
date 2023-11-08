@@ -1,0 +1,71 @@
+Gambar 1.1 Sistem Klasifikasi Kopi 4
+Gambar 2.1 Arduino Uno 17
+Gambar 2.2 Sensor Gas MQ-7 20
+Gambar 2.3 Sensor Gas MQ-135 20
+Gambar 2.4 Sensor Gas MQ-136 21
+Gambar 2.5 Sensor SHT-31 22
+Gambar 3.1 Diagram Blok Sistem 23
+Gambar 3.2 Perancangan Elektronik Sistem 23
+Gambar 3.3 Perancangan Fisik Alat 24
+Gambar 3.4 Arsitektur Jaringan Saraf Tiruan 26
+Gambar 3.5 Diagram Alir Pelatihan JST 27
+Gambar 3.6 Diagram Alir Pengujian JST 29
+Gambar 3.7 Diagram Alir Pembacaan Aroma Kopi 30
+Gambar 3.8 Diagram Konversi JSON ke Dataset 32
+Gambar 3.9 Perancangan GUI Konversi Data 33
+Gambar 3.10 Perancangan GUI Klasifikasi Kopi 31
+Gambar 4.1 Implementasi Keseluruhan Sistem 34
+Gambar 4.2 Komponen-Komponen dalam Chamber 35
+Gambar 4.3 GUI Konversi Data Latih 34
+Gambar 4.4 GUI Konversi Data Uji 34
+Gambar 4.5 Data dalam Format JSON 34
+Gambar 4.6 Tampilan GUI Sebelum Pelatihan dan Pengujian JST 39
+Gambar 4.7 Tampilan GUI Setelah Pelatihan JST 40
+Gambar 4.8 Tampilan GUI Pelatihan Sebelum Pengujian 42
+Gambar 4.9 Tampilan Grafik Hasil Prediksi 42
+Gambar 4.10 Tampilan GUI Setelah Pelatihan JST 42
+Gambar 4.11 Tampilan Grafik Hasil Klasifikasi Kopi Sidikalang 44
+Gambar 4.12 Tampilan Grafik Hasil Klasifikasi Kopi Toraja 44
+Gambar 4.13 Tampilan Grafik Hasil Klasifikasi Kopi Temanggung 45
+Gambar 4.14 Tampilan Grafik Hasil Klasifikasi  Kopi Toraja 45
+Gambar 4.15 Import Library dan Inisialisasi Sensor 47
+Gambar 4.16 Definisi Pin dan Fungsi Sensor Gas 47
+Gambar 4.17 Konversi Nilai Sensor ke PPM 48
+Gambar 4.18 Setup Awal 48
+Gambar 4.19 Loop Utama 49
+Gambar 4.20 Baca Data dari Sensor Gas 49
+Gambar 4.21 Tampilkan Data di Serial Monitor 50
+Gambar 4.22 Inisialisasi Koneksi Serial 51
+Gambar 4.23 GUI untuk Input Data 51
+Gambar 4.24 Event Handling GUI Input Data 52
+
+
+Tabel 2.1 Spesifikasi Arduino Uno 15
+Tabel 4.1 Nilai biner Setiap Jenis Kopi 35
+Tabel 4.2 Data Latih Kopi Sidikalang 35
+Tabel 4.3 Data Uji Kopi Sidikalang 35
+Tabel 4.4 Data Latih Kopi Toraja 36
+Tabel 4.5 Data Uji Kopi Toraja 36
+Tabel 4.6 Data Latih Kopi Temanggung 36
+Tabel 4.7 Data Uji Kopi Temanggung 37
+Tabel 4.8 Data Latih Kopi Manggarai 37
+Tabel 4.9 Data Uji Kopi Manggarai 37
+
+
+Javascript
+React Js
+Next Js
+Webpack
+Typescript
+HTML5
+Linux
+SaSS
+Node Js
+CSS3
+Git
+RESTful API
+Python
+CSS Library
+Github
+Jest
+

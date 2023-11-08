@@ -25,9 +25,6 @@ void enableGasSensors() {
 }
 
 float convertToPpm(int sensorValue) {
-  // Konversi dari nilai sensor ke ppm sesuai dengan karakteristik sensor gas yang digunakan
-  // Anda perlu mengacu pada datasheet masing-masing sensor untuk perhitungan ppm yang sesuai
-  // Contoh: Kalkulasikan ppm berdasarkan data sheet sensor
   float ppm = map(sensorValue, 0, 1023, 0, 1000);  // Kalkulasikan ppm sesuai dengan karakteristik sensor
   return ppm;
 }

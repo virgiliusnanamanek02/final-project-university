@@ -1,3 +1,4 @@
+
 import os
 import numpy as np
 import pandas as pd
@@ -5,8 +6,21 @@ import matplotlib.pyplot as plt
 import PySimpleGUI as sg
 from sklearn.metrics import accuracy_score
 
-def sigmoid(x):
-    return 1 / (1 + np.exp(-x))
+
+def relu(x):
+    return np.maximum(0, x)
+
+
+def initialize_weights(input_neurons, hidden_neurons, output_neurons):
+    # Inisialisasi bobot input-hidden dengan metode He
+    weights_input_hidden = np.random.randn(
+        input_neurons, hidden_neurons) * np.sqrt(2.0 / input_neurons)
+
+    # Inisialisasi bobot hidden-output dengan metode He
+    weights_hidden_output = np.random.randn(
+        hidden_neurons, output_neurons) * np.sqrt(2.0 / hidden_neurons)
+
+    return weights_input_hidden, weights_hidden_output
 
 
 def load_csv(file_key):
@@ -37,55 +51,41 @@ def train_model(file_path):
     hidden_neurons = 4
     output_neurons = y.shape[1]  # 4 karena ada 4 jenis kopi
 
-    # Untuk memastikan hasil random yang sama setiap kali dijalankan
-    np.random.seed(0)
+    # Inisialisasi bobot dengan metode He
+    weights_input_hidden, weights_hidden_output = initialize_weights(
+        input_neurons, hidden_neurons, output_neurons)
 
-    weights_input_hidden = np.random.uniform(
-        size=(input_neurons, hidden_neurons))  # Bobot untuk input ke hidden layer
-    bias_hidden = np.random.uniform(
-        size=(1, hidden_neurons))  # Bias untuk hidden layer
-
-    weights_hidden_output = np.random.uniform(
-        size=(hidden_neurons, output_neurons))  # Bobot untuk hidden ke output layer
-    bias_output = np.random.uniform(
-        size=(1, output_neurons))  # Bias untuk output layer
+    bias_hidden = np.random.randn(1, hidden_neurons)  # Bias untuk hidden layer
+    bias_output = np.random.randn(1, output_neurons)  # Bias untuk output layer
 
     epochs = 10000  # Jumlah iterasi
     learning_rate = 0.01  # Nilai learning rate
 
     for _ in range(epochs):
-        # Forward Propagation
-        hidden_input = np.dot(X, weights_input_hidden) + \
-            bias_hidden  # Input ke hidden layer
-        hidden_output = sigmoid(hidden_input)  # Output dari hidden layer
+        for i in range(len(X)):
+            # Forward Propagation
+            hidden_input = np.dot(X[i], weights_input_hidden) + bias_hidden
+            hidden_output = relu(hidden_input)
 
-        # Input ke output layer
-        output_input = np.dot(
-            hidden_output, weights_hidden_output) + bias_output
-        predicted_output = sigmoid(output_input)  # Output dari output layer
+            output_input = np.dot(
+                hidden_output, weights_hidden_output) + bias_output
+            predicted_output = output_input
 
-        # Backpropagation
-        error = y - predicted_output  # Selisih antara nilai target dengan nilai prediksi
-        output_gradient = predicted_output * \
-            (1 - predicted_output) * error  # Gradien dari output layer
+            # Backpropagation
 
-        # Selisih antara nilai gradien output dengan nilai bobot hidden-output
-        hidden_error = np.dot(output_gradient, weights_hidden_output.T)
-        hidden_gradient = hidden_output * \
-            (1 - hidden_output) * hidden_error  # Gradien dari hidden layer
+            error = y[i] - predicted_output
+            output_gradient = error
+            hidden_error = np.dot(output_gradient, weights_hidden_output.T)
+            hidden_gradient = (hidden_error > 0).astype(int) * hidden_error
 
-        # Update bobot hidden-output
-        weights_hidden_output += np.dot(hidden_output.T,
-                                        output_gradient) * learning_rate
-        # Update bias output
-        bias_output += np.sum(output_gradient, axis=0,
-                              keepdims=True) * learning_rate
+            # Update bobot dan bias dengan SGD
+            weights_hidden_output += np.outer(hidden_output,
+                                              output_gradient) * learning_rate
+            bias_output += output_gradient * learning_rate
 
-        # Update bobot input-hidden
-        weights_input_hidden += np.dot(X.T, hidden_gradient) * learning_rate
-        # Update bias hidden
-        bias_hidden += np.sum(hidden_gradient, axis=0,
-                              keepdims=True) * learning_rate
+            weights_input_hidden += np.outer(X[i],
+                                             hidden_gradient) * learning_rate
+            bias_hidden += hidden_gradient * learning_rate
 
     sg.popup('Pelatihan sudah selesai!')
 
@@ -109,23 +109,22 @@ def test_model(file_path, weights_input_hidden, bias_hidden, weights_hidden_outp
               'Kopi Temanggung', 'Kopi Manggarai']].values
 
     # Output dari hidden layer
-    hidden_output = sigmoid(np.dot(X, weights_input_hidden) + bias_hidden)
-    predicted_output = sigmoid(np.dot(
-        hidden_output, weights_hidden_output) + bias_output)  # Output dari output layer
+    hidden_output = relu(np.dot(X, weights_input_hidden) + bias_hidden)
+    predicted_output = np.dot(
+        hidden_output, weights_hidden_output) + bias_output
 
     # Membuat grafik probabilitas
-    probabilitas = predicted_output[0]  # Probabilitas dari hasil prediksi
+    probabilitas = predicted_output[0]
 
     # Daftar jenis kopi
     daftar_jenis_kopi = ['Kopi Sidikalang', 'Kopi Toraja',
                          'Kopi Temanggung', 'Kopi Manggarai']
 
     # Menemukan indeks dari probabilitas tertinggi
-    # Indeks dari probabilitas tertinggi
     indeks_tertinggi = np.argmax(probabilitas)
 
-    colors = ['gray'] * len(probabilitas)  # Menyiapkan warna
-    colors[indeks_tertinggi] = 'green'  # Mewarnai probabilitas tertinggi
+    colors = ['gray'] * len(probabilitas)
+    colors[indeks_tertinggi] = 'green'
 
     # Menampilkan grafik hasil prediksi
     plt.figure(figsize=(8, 6))
@@ -136,11 +135,11 @@ def test_model(file_path, weights_input_hidden, bias_hidden, weights_hidden_outp
     plt.ylim(0, 1)
     plt.show()
 
-
-    # predicted_labels = (predicted_output >= 0.5).astype(int)
-    accuracy = accuracy_score(np.argmax(y, axis=1), np.argmax(predicted_output, axis=1))
-    # Menampilkan hasil evaluasi
+    accuracy = accuracy_score(np.argmax(y, axis=1),
+                              np.argmax(predicted_output, axis=1))
     sg.popup(f'Akurasi: {accuracy * 100:.2f}%')
+
+
 # Palet warna untuk GUI
 sg.theme('DarkTeal2')
 
@@ -200,5 +199,5 @@ if trained_model:
             test_model(values['test_file_path'], weights_input_hidden,
                        bias_hidden, weights_hidden_output, bias_output)
 
-           # Menutup window pengujian
+    # Menutup window pengujian
     test_window.close()

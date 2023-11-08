@@ -4,6 +4,10 @@ import pandas as pd
 import matplotlib.pyplot as plt
 import PySimpleGUI as sg
 from sklearn.metrics import accuracy_score, precision_score, recall_score, f1_score, confusion_matrix
+from sklearn.model_selection import train_test_split
+from tensorflow.keras.models import Sequential
+from tensorflow.keras.layers import Dense, Dropout
+from tensorflow.keras.optimizers import Adagrad
 
 # Fungsi sigmoid untuk aktivasi
 def sigmoid(x):
@@ -21,7 +25,7 @@ def load_csv(file_key):
     if file_path:
         sg.window[file_key].update(file_path)
 
-# Fungsi untuk melatih model
+# Fungsi untuk melatih model dengan dropout
 def train_model(file_path):
     if not file_path:
         sg.popup_error('Pilih file data pelatihan terlebih dahulu!')
@@ -39,44 +43,36 @@ def train_model(file_path):
               'Kopi Temanggung', 'Kopi Manggarai']].values
 
     input_neurons = X.shape[1]
-    hidden_neurons = 8
+    hidden_neurons = 16
     output_neurons = y.shape[1]
 
     np.random.seed(0)
 
-    weights_input_hidden = np.random.uniform(size=(input_neurons, hidden_neurons))
-    bias_hidden = np.random.uniform(size=(1, hidden_neurons))
-
-    weights_hidden_output = np.random.uniform(size=(hidden_neurons, output_neurons))
-    bias_output = np.random.uniform(size=(1, output_neurons))
+    model = Sequential()
+    model.add(Dense(hidden_neurons, input_dim=input_neurons, activation='relu'))
+    model.add(Dropout(0.2))  # Dropout layer with a 20% dropout rate
+    model.add(Dense(output_neurons, activation='softmax'))
 
     epochs = 500
     learning_rate = 0.1
 
-    for _ in range(epochs):
-        hidden_input = np.dot(X, weights_input_hidden) + bias_hidden
-        hidden_output = sigmoid(hidden_input)
+    #sgd = SGD(lr=learning_rate)
+    #model.compile(loss='categorical_crossentropy', optimizer=sgd, metrics=['accuracy'])
 
-        output_input = np.dot(hidden_output, weights_hidden_output) + bias_output
-        predicted_output = softmax(output_input)
+    #rmsprop = RMSprop(learning_rate=learning_rate)
+    #model.compile(loss='categorical_crossentropy', optimizer=rmsprop, metrics=['accuracy'])
 
-        error = y - predicted_output
-        output_gradient = predicted_output * (1 - predicted_output) * error
+    adagrad = Adagrad(learning_rate=learning_rate)
+    model.compile(loss='categorical_crossentropy', optimizer=adagrad, metrics=['accuracy'])
 
-        hidden_error = np.dot(output_gradient, weights_hidden_output.T)
-        hidden_gradient = hidden_output * (1 - hidden_output) * hidden_error
 
-        weights_hidden_output += np.dot(hidden_output.T, output_gradient) * learning_rate
-        bias_output += np.sum(output_gradient, axis=0, keepdims=True) * learning_rate
-
-        weights_input_hidden += np.dot(X.T, hidden_gradient) * learning_rate
-        bias_hidden += np.sum(hidden_gradient, axis=0, keepdims=True) * learning_rate
+    model.fit(X, y, epochs=epochs, batch_size=10)
 
     sg.popup('Pelatihan sudah selesai!')
-    return weights_input_hidden, bias_hidden, weights_hidden_output, bias_output
+    return model
 
-# Fungsi untuk menguji model
-def test_model(file_path, weights_input_hidden, bias_hidden, weights_hidden_output, bias_output):
+# Fungsi untuk menguji model dengan dropout
+def test_model(file_path, model):
     if not file_path:
         sg.popup_error('Pilih file data pengujian terlebih dahulu!')
         return
@@ -91,33 +87,53 @@ def test_model(file_path, weights_input_hidden, bias_hidden, weights_hidden_outp
     y = data[['Kopi Sidikalang', 'Kopi Toraja',
               'Kopi Temanggung', 'Kopi Manggarai']].values
 
-    hidden_output = sigmoid(np.dot(X, weights_input_hidden) + bias_hidden)
-    predicted_output = softmax(np.dot(hidden_output, weights_hidden_output) + bias_output)
+    predicted_output = model.predict(X)
 
     true_labels = np.argmax(y, axis=1)
+
     accuracy = accuracy_score(true_labels, np.argmax(predicted_output, axis=1))
     precision = precision_score(true_labels, np.argmax(predicted_output, axis=1), average='weighted', zero_division=0)
-    recall = recall_score(true_labels, np.argmax(predicted_output, axis=1), average='weighted', zero_division=0)
 
-    f1 = f1_score(true_labels, np.argmax(predicted_output, axis=1), average='weighted')
+    # Hitung recall
+    conf_matrix = confusion_matrix(true_labels, np.argmax(predicted_output, axis=1))
+    recall = recall_score(true_labels, np.argmax(predicted_output, axis=1), average=None)
+    
+    # Hitung weighted average recall
+    if np.isnan(precision):
+        weighted_recall = np.nan
+    else:
+        weighted_recall = np.sum(np.diag(recall) / np.sum(conf_matrix, axis=1))
 
-    print(f'Akurasi: {accuracy * 100:.2f}%')
-    print(f'Presisi: {precision * 100:.2f}%')
-    print(f'Recall: {recall * 100:.2f}%')
-    print(f'F1-Score: {f1 * 100:.2f}%')
+    # Hitung F1-Score
+    if np.isnan(precision) or np.isnan(weighted_recall):
+        f1 = np.nan
+    else:
+        f1 = 2 * (precision * weighted_recall) / (precision + weighted_recall)
 
-    #sg.popup(f'Accuracy: {accuracy * 100:.2f}%', f'Precision: {precision * 100:.2f}%', f'Recall: {recall * 100:.2f}%', f'F1-Score: {f1 * 100:.2f}%')
+    print(f'Accuracy: {accuracy * 100:.2f}%')
+    print(f'Precision: {precision * 100:.2f}%')
+    
+    if np.isnan(weighted_recall):
+        print('Recall: Not defined (no true samples in some labels)')
+    else:
+        print(f'Recall: {weighted_recall * 100:.2f}%')
 
-    probabilitas = predicted_output  # Probabilitas tidak perlu diambil sesuai dengan kategori, Anda dapat membiarkannya seperti ini.
+    if np.isnan(f1):
+        print('F1-Score: Not defined (precision or recall is undefined)')
+    else:
+        print(f'F1-Score: {f1 * 100:.2f}%')
 
-    # Pastikan daftar_jenis_kopi memiliki jumlah yang sesuai dengan data pengujian.
+   # sg.popup(f'Accuracy: {accuracy * 100:.2f}%', f'Precision: {precision * 100:.2f}%', f'Recall: {recall * 100:.2f}%', f'F1-Score: {f1 * 100:.2f}%')
+
+    probabilitas = predicted_output
+
     daftar_jenis_kopi = ['Kopi Sidikalang', 'Kopi Toraja', 'Kopi Temanggung', 'Kopi Manggarai']
     bar_colors = ['gray'] * len(probabilitas)
     for i in range(len(bar_colors)):
         bar_colors[i] = 'green' if np.argmax(probabilitas, axis=1)[i] == true_labels[i] else 'gray'
 
     plt.figure(figsize=(8, 6))
-    plt.bar(daftar_jenis_kopi, probabilitas.mean(axis=0), color=bar_colors)  # Ambil rata-rata probabilitas
+    plt.bar(daftar_jenis_kopi, probabilitas.mean(axis=0), color=bar_colors)
     plt.xlabel('Jenis Kopi')
     plt.ylabel('Probabilitas')
     plt.title('Probabilitas Jenis Kopi Berdasarkan Data Uji')
@@ -128,7 +144,6 @@ def test_model(file_path, weights_input_hidden, bias_hidden, weights_hidden_outp
 
     print("Matriks Konfusi:")
     print(conf_matrix)
-
 
 
 sg.theme('SandyBeach')
@@ -146,8 +161,7 @@ layout = [
 
 window = sg.Window('Analisis Jenis Kopi', layout, size=(600, 300), element_justification='center')
 
-weights_input_hidden, bias_hidden, weights_hidden_output, bias_output = None, None, None, None
-
+model = None
 accuracy = None
 
 while True:
@@ -155,18 +169,16 @@ while True:
     if event == sg.WINDOW_CLOSED or event == 'Exit':
         break
     elif event == 'Pelatihan':
-        trained_model = train_model(values['train_file_path'])
-        if trained_model:
-            weights_input_hidden, bias_hidden, weights_hidden_output, bias_output = trained_model
+        model = train_model(values['train_file_path'])
+        if model:
             window['result_text'].update('Pelatihan selesai!')
     elif event == 'Pengujian':
-        if weights_input_hidden is None:
+        if model is None:
             sg.popup_error('Lakukan pelatihan terlebih dahulu!')
         else:
-            accuracy = test_model(values['test_file_path'], weights_input_hidden, bias_hidden, weights_hidden_output, bias_output)
+            accuracy = test_model(values['test_file_path'], model)
             window['result_text'].update('Pengujian selesai!')
             if accuracy is not None:
                 window['accuracy_value'].update(f'{accuracy * 100:.2f}%')
 
 window.close()
-
