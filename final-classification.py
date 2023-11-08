@@ -13,16 +13,14 @@ while True:
     # Baca data dari Arduino
     data = ser.readline().decode('utf-8').strip()
     
-    # Praproses data (misalnya, pisahkan nilai suhu, kelembaban, mq7Ppm, mq135Ppm, mq136Ppm)
+    # Praproses data (misalnya, pisahkan nilai mq7Ppm, mq135Ppm, mq136Ppm)
     data_list = data.split(',')
-    suhu = float(data_list[0])
-    kelembaban = float(data_list[1])
-    mq7Ppm = float(data_list[2])
-    mq135Ppm = float(data_list[3])
-    mq136Ppm = float(data_list[4])
+    mq7Ppm = float(data_list[0])
+    mq135Ppm = float(data_list[1])
+    mq136Ppm = float(data_list[2])
     
-    # Buat data input sesuai dengan model Anda
-    input_data = np.array([[mq7Ppm, mq135Ppm, mq136Ppm, suhu, kelembaban]])
+    # Buat data input sesuai dengan model Anda (tanpa suhu dan kelembaban)
+    input_data = np.array([[mq7Ppm, mq135Ppm, mq136Ppm]])
     
     # Klasifikasikan data dengan model
     predictions = model.predict(input_data)
