@@ -1,25 +1,15 @@
 import os
 import numpy as np
 import pandas as pd
-import matplotlib.pyplot as plt
 import PySimpleGUI as sg
-from sklearn.metrics import accuracy_score, precision_score, recall_score, f1_score, confusion_matrix
-from sklearn.model_selection import train_test_split
 from tensorflow.keras.models import Sequential
 from tensorflow.keras.layers import Dense, Dropout
 from tensorflow.keras.optimizers import Adagrad
+from tensorflow.keras import regularizers
 
-save_path = "./data/model-jst-05"
+save_path = "./data/model-jst-04"
 training_path = "merged.csv"
 
-# Fungsi sigmoid untuk aktivasi
-def sigmoid(x):
-    return 1 / (1 + np.exp(-x))
-
-# Fungsi softmax
-def softmax(x):
-    exp_x = np.exp(x - np.max(x))
-    return exp_x / exp_x.sum(axis=0, keepdims=True)
 
 # Fungsi untuk memuat file CSV
 def load_csv(file_key):
@@ -28,7 +18,7 @@ def load_csv(file_key):
     if file_path:
         sg.window[file_key].update(file_path)
 
-# Fungsi untuk melatih model dengan dropout
+# Fungsi untuk melatih model dengan regularisasi
 def train_model(file_path, save_path):
     if not file_path:
         sg.popup_error('Pilih file data pelatihan terlebih dahulu!')
@@ -52,9 +42,9 @@ def train_model(file_path, save_path):
     np.random.seed(0)
 
     model = Sequential()
-    model.add(Dense(hidden_neurons, input_dim=input_neurons, activation='relu'))
-    model.add(Dropout(0.2))  # Dropout layer with a 20% dropout rate
-    model.add(Dense(output_neurons, activation='softmax'))
+    model.add(Dense(hidden_neurons, input_dim=input_neurons, activation='relu', kernel_regularizer=regularizers.l2(0.01)))
+    model.add(Dropout(0.2))
+    model.add(Dense(output_neurons, activation='softmax', kernel_regularizer=regularizers.l2(0.01)))
 
     epochs = 500
     learning_rate = 0.1
